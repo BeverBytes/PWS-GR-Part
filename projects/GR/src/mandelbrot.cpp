@@ -3,37 +3,13 @@
 int Mandelbrot::iterateMandelbrot(complexFloat z, complexFloat c) {
     int iterations = 0;
     float magnetude = 0;
-    while (magnetude <= 2 && iterations < 150) {
+    while (magnetude <= 4.0f && iterations < 150) {
         z = Mandelbrot::floatAdd(Mandelbrot::floatMult(z, z), c);
-        magnetude = Mandelbrot::floatMagnitude(z);
+        magnetude = z.real * z.real + z.imag * z.imag;
         iterations++;
     }
     return iterations;
 }
-
-
-float sqrt(float domestic_number) {
-    if (domestic_number < 0) {
-        return -1.0; // Return an error value for negative inputs
-    }
-    if (domestic_number == 0 || domestic_number == 1) {
-        return domestic_number;
-    }
-
-    // Initial guess can be the number itself
-    float guess = domestic_number;
-    float epsilon = 0.0000001; // Controls the precision of the result
-    float previous_guess = 0;
-
-    // Iterate until the difference between iterations is negligible
-    while (guess - previous_guess > epsilon || previous_guess - guess > epsilon) {
-        previous_guess = guess;
-        guess = (guess + domestic_number / guess) / 2.0;
-    }
-
-    return guess;
-}
-
 
 complexFloat Mandelbrot::floatMult(complexFloat a, complexFloat b) {
     return {a.real * b.real - a.imag * b.imag,
@@ -90,16 +66,4 @@ complexLongDouble Mandelbrot::longDoubleDiv(complexLongDouble a, complexLongDoub
     const long double denominator = b.real * b.real + b.imag * b.imag;
     return {(a.real * b.real + a.imag * b.imag) / denominator,
             (a.imag * b.real - a.real * b.imag) / denominator};
-}
-
-float Mandelbrot::floatMagnitude(complexFloat value) {
-    return sqrt(value.real * value.real + value.imag * value.imag);
-}
-
-double Mandelbrot::doubleMagnitude(complexDouble value) {
-    return sqrt(value.real * value.real + value.imag * value.imag);
-}
-
-long double Mandelbrot::longDoubleMagnitude(complexLongDouble value) {
-    return sqrt(value.real * value.real + value.imag * value.imag);
 }

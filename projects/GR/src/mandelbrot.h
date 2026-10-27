@@ -1,5 +1,5 @@
 #ifndef MANDELBROT_H
-#define MANDELBROT_H_H
+#define MANDELBROT_H
 // #pragma pack(push, 1)
 
 struct complexFloat {
