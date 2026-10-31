@@ -21,7 +21,8 @@ struct complexLongDouble {
 
 class Mandelbrot {
     public:
-        int iterateMandelbrot(complexFloat z, complexFloat c);
+        int iterateMandelbrot(complexFloat c);
+        int iterateJulia(complexFloat z, complexFloat c);
 
         complexFloat floatMult(complexFloat a, complexFloat b);
         complexDouble doubleMult(complexDouble a, complexDouble b);

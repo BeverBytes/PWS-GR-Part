@@ -21,13 +21,13 @@ void sendPacket(const JaevanPacket& p) {
     Serial_Write(TXbuffer, (p.dataLength+8));
 }
 
-void sendResults(const uint8_t* results, const uint8_t pointCount) {
+void sendResults(const uint8_t* results, const uint8_t pointCount, const uint8_t c) {
     JaevanProtocol jaevan;
     JaevanPacket p;
     p.sync1 = SYNC1;
     p.sync2 = SYNC2;
     p.destination = JaevanProtocol::Direction::toUSB;
-    p.command = 0x04;
+    p.command = c;
     p.dataLength = pointCount + 2;
     p.data[0] = 0xBA;
     p.data[1] = pointCount;
@@ -40,16 +40,49 @@ void sendResults(const uint8_t* results, const uint8_t pointCount) {
     sendPacket(p);
 }
 
-void runMandelbrot(const complexFloat* complexPoints, const complexFloat c, const uint8_t pointCount) {
+void runMandelbrot(const complexFloat* complexPoints, const uint8_t pointCount) {
     uint8_t results[pointCount];
     Mandelbrot mandelbrot;
     for (uint8_t i = 0; i < pointCount; i++) {
-        results[i] = mandelbrot.iterateMandelbrot(complexPoints[i], c);
+        results[i] = mandelbrot.iterateMandelbrot(complexPoints[i]);
     }
-    sendResults(results, pointCount);
+    sendResults(results, pointCount, MandelbrotCommand);
+}
+
+void runJulia(const complexFloat* complexPoints, const complexFloat c, const uint8_t pointCount) {
+    uint8_t results[pointCount];
+    Mandelbrot mandelbrot;
+    for (uint8_t i = 0; i < pointCount; i++) {
+        results[i] = mandelbrot.iterateJulia(complexPoints[i], c);
+    }
+    sendResults(results, pointCount, JuliaCommand);
 }
 
 void prepareMandelbrot(const uint8_t* data, uint16_t length) {
+    uint8_t pointCount = data[1];
+    complexFloat complexPoints[data[1]];
+    uint32_t realInt;
+    uint32_t imagInt;
+
+    for (uint16_t i = 0; i < pointCount; i++) {
+        realInt = ((uint32_t)data[2+8*i] << 24) |
+               ((uint32_t)data[3+8*i] << 16) |
+               ((uint32_t)data[4+8*i] << 8) |
+               (uint32_t)data[5+8*i];
+
+        memcpy(&complexPoints[i].real, &realInt, 4);
+
+        imagInt = ((uint32_t)data[6+8*i] << 24) |
+               ((uint32_t)data[7+8*i] << 16) |
+               ((uint32_t)data[8+8*i] << 8) |
+               (uint32_t)data[9+8*i];
+
+        memcpy(&complexPoints[i].imag, &imagInt, 4);
+    }
+    runMandelbrot(complexPoints, pointCount);
+}
+
+void prepareJulia(const uint8_t* data, uint16_t length) {
     uint8_t pointCount = data[1];
     complexFloat complexPoints[data[1]];
     complexFloat c;
@@ -87,13 +120,17 @@ void prepareMandelbrot(const uint8_t* data, uint16_t length) {
 
         memcpy(&complexPoints[i].imag, &imagInt, 4);
     }
-    runMandelbrot(complexPoints, c, pointCount);
+    runJulia(complexPoints, c, pointCount);
 }
 
 void handlePacket(const JaevanPacket& p) {
     if (p.command == MandelbrotCommand) {
         if (p.data[0] == 0xB9) {
             prepareMandelbrot(p.data, p.dataLength);
+        }
+    } else if (p.command == JuliaCommand) {
+        if (p.data[0] == 0xB9) {
+            prepareJulia(p.data, p.dataLength);
         }
     } else if (p.command == GRdiagCommand) {
         if (p.data[0] == 0xC7) {

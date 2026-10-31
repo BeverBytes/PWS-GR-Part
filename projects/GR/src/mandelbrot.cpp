@@ -1,9 +1,23 @@
 #include "mandelbrot.h"
 
-int Mandelbrot::iterateMandelbrot(complexFloat z, complexFloat c) {
+int Mandelbrot::iterateJulia(complexFloat z, complexFloat c) {
     int iterations = 0;
     float magnetude = 0;
-    while (magnetude <= 4.0f && iterations < 150) {
+    while (magnetude <= 4.0f && iterations < 255) {
+        z = Mandelbrot::floatAdd(Mandelbrot::floatMult(z, z), c);
+        magnetude = z.real * z.real + z.imag * z.imag;
+        iterations++;
+    }
+    return iterations;
+}
+
+int Mandelbrot::iterateMandelbrot(complexFloat c) {
+    int iterations = 0;
+    float magnetude = 0;
+    complexFloat z;
+    z.imag = 0;
+    z.real = 0;
+    while (magnetude <= 4.0f && iterations < 255) {
         z = Mandelbrot::floatAdd(Mandelbrot::floatMult(z, z), c);
         magnetude = z.real * z.real + z.imag * z.imag;
         iterations++;
